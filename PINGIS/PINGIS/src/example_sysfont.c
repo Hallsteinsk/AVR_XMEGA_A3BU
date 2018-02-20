@@ -44,6 +44,7 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 #include <asf.h>
+#include <delay.h>
 
 /**
  * \mainpage
@@ -91,17 +92,17 @@ static void initialState(void);
 static void clearBall(int x, int y);
 
 //Interupt routine
-static void myCallback(void);
+static void updateScreen(void);
 
 //Global constants:
-#define ballStartPosX			60
+#define ballStartPosX			0
 #define ballStartPosY			15
 #define leftPaddleStartPos		0
 #define rightPaddleStartPos		0 
 
 int ballX = ballStartPosX;
 int ballY = ballStartPosY;
-int ballSpeedX = 1;
+int ballSpeedX = 2;
 
 
 /**
@@ -119,9 +120,9 @@ int main(void)
 	gfx_mono_init();
 	
 	tc_enable(&TCC0);
-	tc_set_overflow_interrupt_callback(&TCC0, myCallback);
+	tc_set_overflow_interrupt_callback(&TCC0, updateScreen);
 	tc_set_wgm(&TCC0, TC_WG_NORMAL);
-	tc_write_period(&TCC0, 300);
+	tc_write_period(&TCC0, 500);
 	tc_set_overflow_interrupt_level(&TCC0, TC_INT_LVL_LO);
 	
 	cpu_irq_enable();
@@ -139,11 +140,22 @@ int main(void)
 	}
 }
 
-static void myCallback(void){
-	clearBall(ballX,ballY);
+static void updateScreen(void){
+	
+	//Update the edges of the ball;
+	int ballTop = ballY + 2;
+	int ballBottom = ballY -1;
+	int ballRight = ballX + 4;
+	int ballLeft = ballX - 2;
+	
+	//Update the edges of left and right paddle
+	
+	clearBall(ballX, ballY);
 	ballX += ballSpeedX;
-	//ballY += ballSpeedY;
 	drawBall(ballX,ballY);
+	//ballY += ballSpeedY;
+	//delay_ms(50);
+	
 }
 
 static void initialState(void){
@@ -153,8 +165,9 @@ static void initialState(void){
 }
 
 static void drawBall(int x, int y){
-	gfx_mono_generic_draw_filled_circle(x, y, 2, GFX_PIXEL_SET, 0xFF);
+	gfx_mono_generic_draw_filled_rect(x, y, 6, 4, GFX_PIXEL_SET);
 }
+
 
 static void drawLeftPaddle(int y){
 	gfx_mono_generic_draw_vertical_line(0, y, 15, GFX_PIXEL_SET);
@@ -167,5 +180,5 @@ static void drawRightPaddle(int y){
 }
 
 static void clearBall(int x, int y){
-	gfx_mono_generic_draw_filled_circle(x, y, 2, GFX_PIXEL_CLR, 0x18);
+	gfx_mono_generic_draw_filled_rect(x, y, 4, 4, GFX_PIXEL_CLR);
 }
